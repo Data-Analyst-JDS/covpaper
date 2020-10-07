@@ -30,7 +30,7 @@ stayput <-
   read_sheet(
     ss = config::get(value = "url", config = "stayput"),
     sheet = config::get(value = "sheet", config = "stayput"),
-    col_types = "D_d"
+    col_types = "cD_d"
   )
 
 policy <- 
@@ -38,15 +38,30 @@ policy <-
     ss = config::get(value = "url", config = "default"),
     sheet = config::get(value = "sheet", config = "default"),
     col_types = "DDccc__"
+  ) %>% 
+  mutate(
+    event = fct_reorder(event, start),
+    group = factor(
+      group,
+      levels = c("DKI Jakarta", "Bodebek", "Bandung Raya", "Jawa Barat", "Indonesia")
+    )
   )
+
+policy_period <- 
+  policy %>% 
+  group_by(period = periode) %>%
+  summarise(start = min(start),
+            end = max(end)) %>%
+  mutate(end = if_else(period == "1", max(start), end))
 
 # Save data into project --------------------------------------------------
 
 usethis::use_data(
-  policy,
   covid19, 
   congestion, 
   mobility, 
   stayput,
+  policy,
+  policy_period,
   overwrite = TRUE
 )
