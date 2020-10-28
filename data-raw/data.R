@@ -12,11 +12,11 @@ covid19 <-
     col_types = "Diii____"
   )
 
-congestion <- 
+traffic <- 
   read_sheet(
-    ss = config::get(value = "url", config = "congestion"),
-    sheet = config::get(value = "sheet", config = "congestion"),
-    col_types = "Ddc"
+    ss = config::get(value = "url", config = "traffic"),
+    sheet = config::get(value = "sheet", config = "traffic"),
+    col_types = "cDd"
   )
 
 mobility <- 
@@ -30,38 +30,35 @@ stayput <-
   read_sheet(
     ss = config::get(value = "url", config = "stayput"),
     sheet = config::get(value = "sheet", config = "stayput"),
-    col_types = "cD_d"
+    col_types = "cDdd"
   )
 
 policy <- 
   read_sheet(
     ss = config::get(value = "url", config = "default"),
     sheet = config::get(value = "sheet", config = "default"),
-    col_types = "DDccc__"
+    col_types = "DDccccc__"
   ) %>% 
   mutate(
-    event = fct_reorder(event, start),
+    event = fct_reorder(event_english, start),
     group = factor(
       group,
-      levels = c("DKI Jakarta", "Bodebek", "Bandung Raya", "Jawa Barat", "Indonesia")
+      levels = c("Bandung Raya", "Bodebek", "Jawa Barat", "DKI Jakarta", "Indonesia")
     )
   )
 
 policy_period <- 
-  policy %>% 
-  group_by(period = periode) %>%
-  summarise(start = min(start),
-            end = max(end)) %>%
-  mutate(end = if_else(period == "1", max(start), end))
+  tibble(
+    period = c("Period I", "Period II"),
+  start = as.Date(c("2020-03-01", "2020-06-01")),
+  end = as.Date(c("2020-06-01", "2020-09-30"))
+)
 
 # Save data into project --------------------------------------------------
 
-usethis::use_data(
-  covid19, 
-  congestion, 
-  mobility, 
-  stayput,
-  policy,
-  policy_period,
-  overwrite = TRUE
-)
+usethis::use_data(covid19, overwrite = TRUE)
+usethis::use_data(traffic, overwrite = TRUE)
+usethis::use_data(mobility, overwrite = TRUE)
+usethis::use_data(stayput, overwrite = TRUE)
+usethis::use_data(policy, overwrite = TRUE)
+usethis::use_data(policy_period, overwrite = TRUE)
